@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+
+  # ===== DATABASE PUSAT =====
+  db-pusat:
+    image: postgres:15
+    container_name: db-pusat
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: stok_pusat
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db/pusat.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - stok-network
+
+  # ===== DATABASE CABANG JAKARTA =====
+  db-jakarta:
+    image: postgres:15
+    container_name: db-jakarta
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: stok_jakarta
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init-db/cabang.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - stok-network
+
+  # ===== DATABASE CABANG BANDUNG =====
+  db-bandung:
+    image: postgres:15
+    container_name: db-bandung
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: stok_bandung
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./init-db/cabang.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - stok-network
+
+  # ===== API BACKEND =====
+  api:
+    build: ./api
+    container_name: api-stok
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_PUSAT_HOST=db-pusat
+      - DB_JAKARTA_HOST=db-jakarta
+      - DB_BANDUNG_HOST=db-bandung
+      - DB_USER=admin
+      - DB_PASSWORD=password123
+    depends_on:
+      - db-pusat
+      - db-jakarta
+      - db-bandung
+    networks:
+      - stok-network
+
+networks:
+  stok-network:
+    driver: bridge
